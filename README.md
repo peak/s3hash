@@ -21,6 +21,8 @@ To build, just run:
 
       -e string
             Verify the S3 hash of file
+      -p int
+            Use NUM workers to run in parallel (default: single worker)
 
 ## Examples
 

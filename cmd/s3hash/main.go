@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 
 	"github.com/peakgames/s3hash"
@@ -21,8 +23,12 @@ func printUsageLine() {
 }
 
 func main() {
-
-	hashToVerify := flag.String("e", "", "Verify the S3 hash of file")
+	var (
+		hashToVerify string
+		numWorkers   int
+	)
+	flag.StringVar(&hashToVerify, "e", "", "Verify the S3 hash of file")
+	flag.IntVar(&numWorkers, "p", 0, "Use NUM workers to run in parallel")
 
 	flag.Usage = func() {
 		printUsageLine()
@@ -41,18 +47,29 @@ func main() {
 		EL.Fatal("Please specify a valid chunk size")
 	}
 
+	if numWorkers < 0 {
+		numWorkers = runtime.NumCPU() * -numWorkers
+	}
+
 	chunkSize := int64(mb * bytesInMb)
 
-	result, err := s3hash.CalculateForFile(flag.Arg(1), chunkSize)
+	var result string
+
+	if numWorkers == 0 {
+		result, err = s3hash.CalculateForFile(flag.Arg(1), chunkSize)
+	} else {
+		result, err = s3hash.CalculateForFileInParallel(context.Background(), flag.Arg(1), chunkSize, numWorkers)
+	}
+
 	if err != nil {
 		EL.Fatal(err)
 	}
 
-	if *hashToVerify != "" {
-		if result == *hashToVerify {
+	if hashToVerify != "" {
+		if result == hashToVerify {
 			SL.Println("OK")
 			return
-		}  else {
+		} else {
 			EL.Fatalln("ERROR")
 		}
 	}
