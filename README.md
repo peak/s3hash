@@ -4,7 +4,7 @@ Calculate/verify hash of S3 object
 
 ## Installation ##
 
-    go get -u github.com/peakgames/s3hash
+    go get -u github.com/peakgames/s3hash/cmd/s3hash
 
 This will install `s3hash` in your `$GOPATH/bin` directory.
 
@@ -22,7 +22,7 @@ To build, just run:
       -e string
             Verify the S3 hash of file
       -p int
-            Use NUM workers to run in parallel (default: single worker)
+            Use NUM workers to run in parallel (default: number of cores)
 
 ## Examples
 

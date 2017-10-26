@@ -28,7 +28,7 @@ func main() {
 		numWorkers   int
 	)
 	flag.StringVar(&hashToVerify, "e", "", "Verify the S3 hash of file")
-	flag.IntVar(&numWorkers, "p", 0, "Use NUM workers to run in parallel")
+	flag.IntVar(&numWorkers, "p", -1, "Use NUM workers to run in parallel (default: number of cores)")
 
 	flag.Usage = func() {
 		printUsageLine()
