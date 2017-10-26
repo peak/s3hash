@@ -22,7 +22,8 @@ type result struct {
 	err     error
 }
 
-type ReaderSeekerAt interface {
+// ReaderAtSeeker is both io.ReaderAt and io.Seeker. os.File satisfies it. To satisfy this from a byte slice, io.NewSectionReader() can be used.
+type ReaderAtSeeker interface {
 	io.ReaderAt
 	io.Seeker
 }
@@ -45,7 +46,7 @@ func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize 
 //  data := []byte("test data")
 //  rdr := io.NewSectionReader(bytes.NewReader(data), 0, int64(len(data)))
 //  result, err := CalculateInParallel(context.Background(), rdr, g.chunkSize, runtime.NumCPU())
-func CalculateInParallel(ctx context.Context, input ReaderSeekerAt, chunkSize int64, numWorkers int) (sum string, err error) {
+func CalculateInParallel(ctx context.Context, input ReaderAtSeeker, chunkSize int64, numWorkers int) (sum string, err error) {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 
