@@ -5,40 +5,55 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"sync"
 )
 
-type chunk struct {
-	part   int
-	start  int64
-	length int64
+type work struct {
+	io.Reader
+	partNum int
 }
+
 type result struct {
-	part int
-	sum  []byte
-	err  error
+	partNum int
+	sum     []byte
+	err     error
+}
+
+type ReaderSeekerAt interface {
+	io.ReaderAt
+	io.Seeker
 }
 
 func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize int64, numWorkers int) (sum string, err error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	return CalculateInParallel(ctx, f, chunkSize, numWorkers)
+}
+
+func CalculateInParallel(ctx context.Context, input ReaderSeekerAt, chunkSize int64, numWorkers int) (sum string, err error) {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 
-	var st os.FileInfo
-	st, err = os.Stat(filename)
+	var dataSize int64
+	dataSize, err = input.Seek(0, io.SeekEnd)
 	if err != nil {
 		return
 	}
-	dataSize := st.Size()
 
 	var wg sync.WaitGroup
-	ch := make(chan chunk)
+	ch := make(chan work)
 	results := make(chan result)
 
 	wg.Add(numWorkers)
 	for i := 0; i < numWorkers; i++ {
-		go worker(ctx, &wg, filename, ch, results)
+		go worker(ctx, &wg, ch, results)
 	}
 
 	resultMap := make(map[int][]byte)
@@ -56,7 +71,7 @@ func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize 
 				return
 			}
 
-			resultMap[r.part] = r.sum
+			resultMap[r.partNum] = r.sum
 		}
 	}()
 
@@ -76,10 +91,9 @@ func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize 
 			}
 			err = ctx.Err()
 			return
-		case ch <- chunk{
+		case ch <- work{
+			io.NewSectionReader(input, i, length),
 			parts,
-			i,
-			length,
 		}:
 		}
 	}
@@ -121,30 +135,27 @@ func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize 
 
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, filename string, ch chan chunk, results chan result) {
+func worker(ctx context.Context, wg *sync.WaitGroup, ch chan work, results chan result) {
 	defer wg.Done()
 
-	for c := range ch {
+	for w := range ch {
 		select {
 		case <-ctx.Done():
 			return
-		case results <- singleWork(filename, c):
+		case results <- singleWork(w):
 		}
 	}
 }
 
-func singleWork(filename string, c chunk) result {
-	r := result{part: c.part}
+func singleWork(w work) result {
+	r := result{partNum: w.partNum}
 
-	f, err := os.Open(filename)
-	if err != nil {
+	h := md5.New()
+	if _, err := io.Copy(h, w); err != nil {
 		r.err = err
 		return r
 	}
-	defer f.Close()
 
-	sum, err := md5sum(f, c.start, c.length)
-	r.sum = sum
-	r.err = err
+	r.sum = h.Sum(nil)
 	return r
 }
