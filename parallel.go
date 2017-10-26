@@ -22,11 +22,12 @@ type result struct {
 	err     error
 }
 
-type ReaderSeekerAt interface {
+type readerSeekerAt interface {
 	io.ReaderAt
 	io.Seeker
 }
 
+// CalculateForFileInParallel calculates the S3 hash of a given file with the given chunk size and number of workers.
 func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize int64, numWorkers int) (sum string, err error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -37,7 +38,14 @@ func CalculateForFileInParallel(ctx context.Context, filename string, chunkSize 
 	return CalculateInParallel(ctx, f, chunkSize, numWorkers)
 }
 
-func CalculateInParallel(ctx context.Context, input ReaderSeekerAt, chunkSize int64, numWorkers int) (sum string, err error) {
+// CalculateInParallel calculates the S3 hash of a given readerSeekerAt with the given chunk size and number of workers.
+// io.NewSectionReader() can be used to create input from a byte slice.
+//
+// Example:
+//  data := []byte("test data")
+//  rdr := io.NewSectionReader(bytes.NewReader(data), 0, int64(len(data)))
+//  result, err := CalculateInParallel(context.Background(), rdr, g.chunkSize, runtime.NumCPU())
+func CalculateInParallel(ctx context.Context, input readerSeekerAt, chunkSize int64, numWorkers int) (sum string, err error) {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 

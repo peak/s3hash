@@ -26,7 +26,7 @@ func TestGolden(t *testing.T) {
 	for i, g := range golden {
 		data := bytes.Repeat([]byte(g.genesis), g.numRepeats)
 		rdr := bytes.NewReader(data)
-		result, err := Calculate(rdr, int64(len(data)), g.chunkSize)
+		result, err := Calculate(rdr, g.chunkSize)
 		if err != nil {
 			t.Fatalf("Error calculating golden #%v: %v", i, err)
 		}

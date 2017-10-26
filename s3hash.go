@@ -8,22 +8,24 @@ import (
 	"strconv"
 )
 
+// CalculateForFile calculates the S3 hash of a given file with the given chunk size
 func CalculateForFile(filename string, chunkSize int64) (string, error) {
-	st, err := os.Stat(filename)
-	if err != nil {
-		return "", err
-	}
-
 	f, err := os.Open(filename)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
 
-	return Calculate(f, st.Size(), chunkSize)
+	return Calculate(f, chunkSize)
 }
 
-func Calculate(f io.ReadSeeker, dataSize, chunkSize int64) (string, error) {
+// Calculate calculates the S3 hash of a given io.ReadSeeker with the given chunk size.
+func Calculate(f io.ReadSeeker, chunkSize int64) (string, error) {
+	dataSize, err := f.Seek(0, io.SeekEnd)
+	if err != nil {
+		return "", err
+	}
+
 	var (
 		sumOfSums []byte
 		parts     int
