@@ -1,7 +1,7 @@
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Tag](https://img.shields.io/github/tag/peakgames/s3hash.svg)
 [![godoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/peakgames/s3hash)
-[![Go Report](https://goreportcard.com/badge/github.com/peakgames/s5cmd)](https://goreportcard.com/report/github.com/peakgames/s3hash)
+[![Go Report](https://goreportcard.com/badge/github.com/peakgames/s3hash)](https://goreportcard.com/report/github.com/peakgames/s3hash)
 
 # s3hash #
 
