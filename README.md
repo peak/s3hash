@@ -5,7 +5,16 @@
 
 # s3hash #
 
-Calculate/verify hash of S3 object
+Calculate/verify hash of an S3 object, given a file and chunk size.
+
+# Purpose #
+
+Files uploaded to Amazon S3 using the S3 multipart API will have unique `ETag` values depending on their contents **and** the chunk size used to upload the file. This package calculates what the `ETag` will be using local file contents, which is useful for:
+
+- Comparing local and remote files without downloading them again
+- Verifying an S3 upload by getting the `ETag` of the uploaded file and comparing it to the one generated locally.
+
+This will work on all types of S3 objects, regardless of whether they're uploaded using the multipart API or not.
 
 ## Installation ##
 
@@ -29,7 +38,7 @@ To build, just run:
       -p int
             Use NUM workers to run in parallel (default: number of cores)
 
-## Examples
+## Examples ##
 
 Get hash of local file, to be uploaded to S3 using 15 MB chunks:
 
