@@ -18,16 +18,16 @@ This will work on all types of S3 objects, regardless of whether they're uploade
 
 ## Installation ##
 
+Using [go get](https://golang.org/dl/):
+
     go get -u github.com/peakgames/s3hash/cmd/s3hash
 
 This will install `s3hash` in your `$GOPATH/bin` directory.
 
-### Build ###
+Using [Homebrew](https://brew.sh/):
 
-To build, just run:
-
-    go build ./cmd/s3hash
-
+    brew tap peakgames/s3hash https://github.com/peakgames/s3hash
+    brew install s3hash
 
 ## Usage ##
 
@@ -54,3 +54,16 @@ Verify hash of local file
     $ s3hash -e wronghash 15 filename.gz
     ERROR
     (exit code 1)
+
+## Build ##
+
+To build s3hash manually, clone the repository and use `go build`:
+
+    git clone https://github.com/peakgames/s3hash.git
+    cd s3hash
+    go build ./cmd/s3hash
+
+
+## Contributing ##
+
+Please create an [issue](https://github.com/peakgames/s3hash/issues) and/or a [pull request](https://github.com/peakgames/s3hash/pulls).
