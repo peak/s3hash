@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/peakgames/s3hash"
+	"github.com/peak/s3hash"
 )
 
 const bytesInMb = 1024 * 1024
